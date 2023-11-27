@@ -155,6 +155,22 @@ io.on('connection', (socket) => {
             catch { }
             return;
         }
+        if (data.message.trim().toLowerCase().split(' ')[0] == '/join') {
+            try {
+                let roomName = data.message.trim().toLowerCase().split(' ').slice(1).join(' ');
+                socket.join("room-" + roomName);
+                socket.emit('room-list', { rooms: convertRooms(socket.rooms) });
+                socket.to(roomName).emit('message', {
+                    message: 'User ' + username + ' has joined the room ' + roomName,
+                    scope: 'server',
+                    room: roomName,
+                    userid: 0,
+                    username: "Server"
+                });
+            }
+            catch { }
+            return;
+        }
         io.to("room-" + data.room).emit('message', {
             message: data.message,
             scope: 'room',
