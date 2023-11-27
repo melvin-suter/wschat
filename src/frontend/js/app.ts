@@ -105,14 +105,12 @@ function startApp(username:string) {
     document.querySelector('#send-button')?.addEventListener('click',(ev:any) => {
         let input:HTMLInputElement = document.getElementById('new-message') as HTMLInputElement;
 
-        if(ev.code == "Enter" && !ev.shiftKey) {
-            socket.emit('message',{
-                message: input.value,
-                room: currentRoom
-            })
+        socket.emit('message',{
+            message: input.value,
+            room: currentRoom
+        })
 
-            input.value = "";
-        }
+        input.value = "";
     });
 
 
