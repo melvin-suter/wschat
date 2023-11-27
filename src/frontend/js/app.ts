@@ -1,7 +1,7 @@
 var setUsername;
 var currentRoom = "Global";
 
-function sanitize(string:string) {
+function sanitize(string:string):string {
 	const map = {
 		'&': '&amp;',
 		'<': '&lt;',
@@ -18,7 +18,7 @@ function startApp(username:string) {
     document.querySelector('.login')?.classList.add("d-none");
     document.querySelector('.app')?.classList.remove("d-none");
 
-
+    // @ts-ignore
     const socket = io('ws://',{
         query: {
             username: username
@@ -28,13 +28,13 @@ function startApp(username:string) {
 
     socket.on('room-list',(data:any) => {
 
-        document.querySelector('.rooms')?.innerHTML  = "";
+        (document.querySelector('.rooms') as HTMLDivElement).innerHTML  = "";
         
         data.rooms.forEach((item:any) => {
             let html = '<div class="room d-flex justify-content-center align-items-center border-bottom p-4 '+(sanitize(item) == currentRoom ? 'bg-success-subtle' : '' )+'">';
             html += '<div class="title">'+sanitize(item)+'</div>';
             html += '</div>';
-            document.querySelector('.rooms')?.innerHTML += html;
+            (document.querySelector('.rooms') as HTMLDivElement).innerHTML += html;
         });
 
     
@@ -60,7 +60,7 @@ function startApp(username:string) {
 
         let isScrolledDown:boolean = document.querySelector('.messages')?.scrollHeight! < 80 + document.querySelector('.messages')?.scrollTop! + document.querySelector('.messages')?.clientHeight!;
 
-        document.querySelector('.messages')?.innerHTML += html;
+        (document.querySelector('.messages') as HTMLDivElement).innerHTML += html;
 
 
         if(isScrolledDown) {
@@ -78,7 +78,7 @@ function startApp(username:string) {
 
         if(ev.code == "Enter") {
             socket.emit('join-room',{
-                room: sanitize(currentRoom);
+                room: sanitize(currentRoom)
             })
 
 

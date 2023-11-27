@@ -1,5 +1,4 @@
 "use strict";
-var _a;
 var setUsername;
 var currentRoom = "Global";
 function sanitize(string) {
@@ -15,9 +14,9 @@ function sanitize(string) {
     return string.replace(reg, (match) => (map[match]));
 }
 function startApp(username) {
-    var _a, _b, _c, _d;
-    (_a = document.querySelector('.login')) === null || _a === void 0 ? void 0 : _a.classList.add("d-none");
-    (_b = document.querySelector('.app')) === null || _b === void 0 ? void 0 : _b.classList.remove("d-none");
+    document.querySelector('.login')?.classList.add("d-none");
+    document.querySelector('.app')?.classList.remove("d-none");
+    // @ts-ignore
     const socket = io('ws://', {
         query: {
             username: username
@@ -25,18 +24,15 @@ function startApp(username) {
     });
     setUsername = username;
     socket.on('room-list', (data) => {
-        var _a;
-        (_a = document.querySelector('.rooms')) === null || _a === void 0 ? void 0 : _a.innerHTML = "";
+        document.querySelector('.rooms').innerHTML = "";
         data.rooms.forEach((item) => {
-            var _a;
             let html = '<div class="room d-flex justify-content-center align-items-center border-bottom p-4 ' + (sanitize(item) == currentRoom ? 'bg-success-subtle' : '') + '">';
             html += '<div class="title">' + sanitize(item) + '</div>';
             html += '</div>';
-            (_a = document.querySelector('.rooms')) === null || _a === void 0 ? void 0 : _a.innerHTML += html;
+            document.querySelector('.rooms').innerHTML += html;
         });
     });
     socket.on('message', (data) => {
-        var _a, _b, _c, _d, _e, _f;
         let date = (new Date()).toISOString().split("T")[0];
         let scopeColor = data.scope == 'user' ? 'bg-warning-subtle' : '';
         scopeColor = data.scope == 'room' ? 'bg-info-subtle' : scopeColor;
@@ -48,14 +44,14 @@ function startApp(username) {
         html += '<p>' + sanitize(data.message).replaceAll('\n', '<br>') + '</p>';
         html += '<footer class="blockquote-footer">' + sanitize(data.username) + ' in <span class="roomname">' + sanitize(data.room) + ' on </span> <cite title="Source Title">(' + date + ')</cite></footer>';
         html += '</blockquote></div></div></div>';
-        let isScrolledDown = ((_a = document.querySelector('.messages')) === null || _a === void 0 ? void 0 : _a.scrollHeight) < 80 + ((_b = document.querySelector('.messages')) === null || _b === void 0 ? void 0 : _b.scrollTop) + ((_c = document.querySelector('.messages')) === null || _c === void 0 ? void 0 : _c.clientHeight);
-        (_d = document.querySelector('.messages')) === null || _d === void 0 ? void 0 : _d.innerHTML += html;
+        let isScrolledDown = document.querySelector('.messages')?.scrollHeight < 80 + document.querySelector('.messages')?.scrollTop + document.querySelector('.messages')?.clientHeight;
+        document.querySelector('.messages').innerHTML += html;
         if (isScrolledDown) {
             // Scolled to the bottom
-            (_e = document.querySelector('.messages')) === null || _e === void 0 ? void 0 : _e.scrollTo(0, (_f = document.querySelector('.messages')) === null || _f === void 0 ? void 0 : _f.scrollHeight);
+            document.querySelector('.messages')?.scrollTo(0, document.querySelector('.messages')?.scrollHeight);
         }
     });
-    (_c = document.querySelector('#join-room')) === null || _c === void 0 ? void 0 : _c.addEventListener('keyup', (ev) => {
+    document.querySelector('#join-room')?.addEventListener('keyup', (ev) => {
         let input = document.getElementById('join-room');
         currentRoom = input.value.trim();
         if (ev.code == "Enter") {
@@ -65,7 +61,7 @@ function startApp(username) {
             input.value = "";
         }
     });
-    (_d = document.querySelector('#new-message')) === null || _d === void 0 ? void 0 : _d.addEventListener('keyup', (ev) => {
+    document.querySelector('#new-message')?.addEventListener('keyup', (ev) => {
         let input = document.getElementById('new-message');
         if (ev.code == "Enter" && !ev.shiftKey) {
             socket.emit('message', {
@@ -84,7 +80,7 @@ function startApp(username) {
         }
     });
 }
-(_a = document.querySelector('#username')) === null || _a === void 0 ? void 0 : _a.addEventListener('keyup', (ev) => {
+document.querySelector('#username')?.addEventListener('keyup', (ev) => {
     let input = document.getElementById('username');
     if (ev.code == "Enter") {
         startApp(input.value);

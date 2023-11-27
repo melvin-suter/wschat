@@ -33,8 +33,8 @@ app.get('/', (req:express.Request, res:express.Response) => {
 
 
 function convertRooms(socketRooms:any) {
-  let rooms = [];
-  for (const room of socketRooms) {
+  let rooms:string[] = [];
+  for (let room of socketRooms) {
     rooms.push(room.substring(5));
   }
   return rooms.slice(2);

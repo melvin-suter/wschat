@@ -49,7 +49,7 @@ app.get('/', (req, res) => {
 });
 function convertRooms(socketRooms) {
     let rooms = [];
-    for (const room of socketRooms) {
+    for (let room of socketRooms) {
         rooms.push(room.substring(5));
     }
     return rooms.slice(2);
@@ -152,7 +152,7 @@ io.on('connection', (socket) => {
                     username: username
                 });
             }
-            catch (_a) { }
+            catch { }
             return;
         }
         io.to(data.room).emit('message', {
