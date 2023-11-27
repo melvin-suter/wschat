@@ -147,6 +147,26 @@ io.on('connection', (socket) => {
       return;
     }
 
+    if(data.message.trim().toLowerCase().split(' ')[0] == '/help') {
+
+      let text = "Available Commands:\n";
+      text += "- /help - This\n";
+      text += "- /users - Shows all logged in users\n";
+      text += "- /rooms - Shows all active rooms\n";
+      text += "- /join [room-name] - Join or create a room\n";
+      text += "- /send [username] [message] - Send a direct message to a user\n";
+    
+      socket.emit('message',{
+        message: text,
+        scope: 'user',
+        room: 'Direct Message',
+        userid: socket.id,
+        username: username
+      });
+      
+      return;
+    }
+
     if(data.message.trim().toLowerCase().split(' ')[0] == '/send') {
 
       try{
@@ -154,7 +174,7 @@ io.on('connection', (socket) => {
         let receiverUsername = data.message.trim().toLowerCase().split(' ')[1];
         let text = data.message.trim().toLowerCase().split(' ').slice(2).join(' ');
         
-        io.to(receiverUsername).emit('message',{
+        io.to("user-" + receiverUsername).emit('message',{
           message: text,
           scope: 'user',
           room: 'Direct Message',
