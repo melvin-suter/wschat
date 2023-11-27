@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/socket.io.min.js"></script>
+    <script src="/js/app.js" defer></script>
+
+    <style>
+        html,body {
+            width: 100%;
+            height: 100%;
+        }
+
+        .new-message {
+            height: 100px;
+        }
+
+        #join-room {
+            outline: none;
+            border: none;
+            background: transparent;
+        }
+    </style>
+</head>
+  <body class="" data-bs-theme="dark">
+    <div class="app w-100 h-100 d-none">
+        <div class="row  w-100 h-100">
+            <div class="col-3 bg-dark-subtle">
+                <div class="rooms"></div>
+                <div class="room border-bottom ">
+                    <input type="text" id="join-room" placeholder="Enter Room Name" class="w-100 h-100 p-4 text-center"/>
+                </div>
+            </div>
+            <div class="col-9 d-flex flex-column p-3 h-100">
+                <h1>Chat</h1>
+                <div class="messages h-100 overflow-auto">
+
+                </div>
+                <textarea class="form-control new-message" id="new-message"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="login d-flex justify-content-center align-items-center w-100 h-100">
+        <div class="login-wrapper  text-center">
+            <h1>Enter</h1>
+            <input type="text" class="form-control" id="username" placeholder="Username"/>
+        </div>
+    </div>
+  </body>
+</html>
