@@ -3,12 +3,16 @@ import * as express from "express";
 import * as http from "http";
 import * as socketio from "socket.io";
 import * as crypto from 'crypto';
+import {Sender} from './sender';
+import { Lib } from './lib';
 
 dotenv.config();
 const port = process.env.PORT ? process.env.PORT : 8001;
 const app: express.Express = express.default();
 
-
+/***********************
+ *     Static Files
+ ***********************/
 
 const sharedFiles = [
   'css/bootstrap.min.css',
@@ -17,18 +21,21 @@ const sharedFiles = [
   'js/socket.io.min.js'
 ]
 
-
 sharedFiles.forEach((item:string) => {
-
   app.get('/' + item, (req:express.Request, res:express.Response) => {
     res.sendFile(__dirname + '/frontend/' + item);
   });
-
 });
 
 app.get('/', (req:express.Request, res:express.Response) => {
   res.sendFile(__dirname + '/frontend/index.html');
 });
+
+
+
+/***********************
+ *     Functions
+ ***********************/
 
 
 
@@ -40,72 +47,75 @@ function convertRooms(socketRooms:any) {
   return rooms.slice(2);
 }
 
+
+
+/***********************
+ *     Initialize
+ ***********************/
+
+
 let users = new Map();
 const server = http.createServer(app);
 const io = new socketio.Server(server);
 
-io.on('connection', (socket) => {
-  /*onst userId = crypto.randomUUID();
-  socket.join(userId);*/
 
+/***********************
+ *     Socket Events
+ ***********************/
+
+
+io.on('connection', (socket) => {
+
+  // Start Helper Classes
+  let sender = new Sender(io,socket);
+  let lib = new Lib(io,socket);
+
+
+  // Username List
   const username:string = socket.handshake.query.username ? socket.handshake.query.username as string : 'no one';
   socket.join("user-" + username);
   users.set(socket.id, username);
  
+
+  // Default Joins
   socket.join("room-Global");
 
+
   // Send Init Data
-  socket.emit('room-list',{rooms: convertRooms(socket.rooms)});
+  lib.updateRooms();
   socket.emit('userid',{userid: socket.id});
 
   // Send local greeting
-  socket.emit('message',{
-    message: 'Hello ' + username,
-    scope: 'user',
-    room: 'Direct Message',
-    userid: 0,
-    username: "Server"
-  });
+  sender.directMessage('Hello ' + username);
 
   // Announcements
-  io.to('room-Global').emit('message',{
-    message: 'User ' + username + ' has joined',
-    scope: 'server',
-      room: 'Server',
-      userid: 0,
-    username: "Server"
-  });
+  sender.roomAnnouncement('User ' + username + ' has joined');
 
   socket.on('disconnect', () => {
-    
     users.delete(socket.id);
-    
-    io.to('room-Global').emit('message',{
-      message: 'User ' + username + ' left',
-      scope: 'server',
-      room: 'Server',
-      userid: 0,
-      username: "Server"
-    });
+    sender.roomAnnouncement('User ' + username + ' left');
   });
 
+
+
+  ///////////////
   // Room management
+  ///////////////
+
   socket.on('room-list', () => {
-    socket.emit('room-list',{rooms: convertRooms(socket.rooms)});
-  });
-  socket.on('join-room', (data) => {
-    socket.join("room-" + data.room);
-    socket.emit('room-list',{rooms: convertRooms(socket.rooms)});
-    socket.to(data.room).emit('message',{
-      message: 'User ' + username + ' has joined the room '+ data.room,
-      scope: 'server',
-      room: data.room,
-      userid: 0,
-      username: "Server"
-    });
+    lib.updateRooms();
   });
 
-  // Handle Messaging
+  socket.on('join-room', (data) => {
+    lib.joinRoom(data.room, username);
+   });
+
+  
+
+  ///////////////
+  // Messaging
+  ///////////////
+
   socket.on('message', (data) => {
     if(data.message.trim() == '/rooms') {
 
@@ -117,14 +127,8 @@ io.on('connection', (socket) => {
         }
       }
         
-      socket.emit('message',{
-        message: text,
-        scope: 'user',
-        room: 'Direct Message',
-        userid: socket.id,
-        username: "Server"
-      });
-      
+      sender.directMessage(text);
+
       return;
     }
 
@@ -136,14 +140,8 @@ io.on('connection', (socket) => {
         text += "- " +user + "\n";
       }
         
-      socket.emit('message',{
-        message: text,
-        scope: 'user',
-        room: 'Direct Message',
-        userid: socket.id,
-        username: "Server"
-      });
-      
+        sender.directMessage(text);
+
       return;
     }
 
@@ -156,13 +154,7 @@ io.on('connection', (socket) => {
       text += "- /join [room-name] - Join or create a room\n";
       text += "- /send [username] [message] - Send a direct message to a user\n";
     
-      socket.emit('message',{
-        message: text,
-        scope: 'user',
-        room: 'Direct Message',
-        userid: socket.id,
-        username: username
-      });
+      sender.directMessage(text);
       
       return;
     }
@@ -174,13 +166,8 @@ io.on('connection', (socket) => {
         let receiverUsername = data.message.trim().toLowerCase().split(' ')[1];
         let text = data.message.trim().toLowerCase().split(' ').slice(2).join(' ');
         
-        io.to("user-" + receiverUsername).emit('message',{
-          message: text,
-          scope: 'user',
-          room: 'Direct Message',
-          userid: socket.id,
-          username: username
-        });
+        sender.directMessage(text, username, receiverUsername);
+
       }catch{}
       
       return;
@@ -188,29 +175,14 @@ io.on('connection', (socket) => {
     if(data.message.trim().toLowerCase().split(' ')[0] == '/join') {
 
       try{
-
         let roomName = data.message.trim().toLowerCase().split(' ').slice(1).join(' ');
-        socket.join("room-" + roomName);
-        socket.emit('room-list',{rooms: convertRooms(socket.rooms)});
-        socket.to(roomName).emit('message',{
-          message: 'User ' + username + ' has joined the room '+ roomName,
-          scope: 'server',
-          room: roomName,
-          userid: 0,
-          username: "Server"
-        });
+        lib.joinRoom(roomName, username);
       }catch{}
       
       return;
     }
 
-    io.to("room-" + data.room).emit('message',{
-      message: data.message,
-      scope: 'room',
-      room: data.room,
-      userid: socket.id,
-      username: username
-    });
+    sender.sendRoom(data.message,data.room,username);
   })
 
 });
