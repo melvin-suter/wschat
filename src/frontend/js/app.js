@@ -71,9 +71,18 @@ function startApp(username) {
             input.value = "";
         }
     });
+    document.querySelector('#send-button')?.addEventListener('click', (ev) => {
+        let input = document.getElementById('new-message');
+        if (ev.code == "Enter" && !ev.shiftKey) {
+            socket.emit('message', {
+                message: input.value,
+                room: currentRoom
+            });
+            input.value = "";
+        }
+    });
     document.addEventListener('click', (ev) => {
         let input = ev.target.closest(".room");
-        console.log(input);
         if (input) {
             currentRoom = input.textContent;
             socket.emit('room-list');

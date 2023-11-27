@@ -102,10 +102,23 @@ function startApp(username:string) {
     });
 
 
+    document.querySelector('#send-button')?.addEventListener('click',(ev:any) => {
+        let input:HTMLInputElement = document.getElementById('new-message') as HTMLInputElement;
+
+        if(ev.code == "Enter" && !ev.shiftKey) {
+            socket.emit('message',{
+                message: input.value,
+                room: currentRoom
+            })
+
+            input.value = "";
+        }
+    });
+
+
 
     document.addEventListener('click',(ev:any) => {
         let input = ev.target.closest(".room");
-        console.log(input);
         if(input){
             currentRoom = input.textContent;
             socket.emit('room-list');

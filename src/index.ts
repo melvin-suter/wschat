@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
   });
 
   // Announcements
-  io.to('Global').emit('message',{
+  io.to('room-Global').emit('message',{
     message: 'User ' + username + ' has joined',
     scope: 'server',
       room: 'Server',
@@ -80,7 +80,7 @@ io.on('connection', (socket) => {
     
     users.delete(socket.id);
     
-    io.to('Global').emit('message',{
+    io.to('room-Global').emit('message',{
       message: 'User ' + username + ' left',
       scope: 'server',
       room: 'Server',
@@ -166,7 +166,7 @@ io.on('connection', (socket) => {
       return;
     }
 
-    io.to(data.room).emit('message',{
+    io.to("room-" + data.room).emit('message',{
       message: data.message,
       scope: 'room',
       room: data.room,
